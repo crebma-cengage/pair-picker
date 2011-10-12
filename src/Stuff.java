@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -20,22 +22,16 @@ public class Stuff {
   };
 
   public void run() throws IOException {
-    final JFrame frame = new JFrame("stuff");
+    final JFrame frame = new JFrame("Pair Picker!");
+
     final JPanel panel = new JPanel(new GridBagLayout());
-    panel.setSize(100, 100);
-    final JLabel label = new JLabel("Pick the pair!");
-    panel.add(label, constraints(0));
-
-    final Properties props = new Properties();
-    final InputStream resource = getClass().getResourceAsStream("git-users.properties");
-    props.load(resource);
-    resource.close();
-
-    int count = 1;
+    panel.add(new JLabel("Pick the pair!"), constraints(0));
 
     final List<MagnusCheckBox> users = new ArrayList<MagnusCheckBox>();
     final ActionListener listener = new GitUpdatingListener(users);
-    for (final Entry<Object, Object> entry : props.entrySet()) {
+
+    int count = 1;
+    for (final Entry<Object, Object> entry : getCommitters().entrySet()) {
       final MagnusCheckBox checkBox = new MagnusCheckBox(entry.getValue().toString(), entry.getKey().toString());
       panel.add(checkBox, constraints(count++));
       checkBox.addActionListener(listener);
@@ -46,6 +42,14 @@ public class Stuff {
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.pack();
     frame.setVisible(true);
+  }
+
+  private Map<Object, Object> getCommitters() throws IOException {
+    final Properties props = new Properties();
+    final InputStream resource = getClass().getResourceAsStream("git-users.properties");
+    props.load(resource);
+    resource.close();
+    return new TreeMap<Object, Object>(props);
   }
 
   private GridBagConstraints constraints(final int y) {
