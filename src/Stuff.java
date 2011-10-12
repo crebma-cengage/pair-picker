@@ -22,22 +22,31 @@ public class Stuff {
   };
 
   public void run() throws IOException {
-    final JFrame frame = new JFrame("Pair Picker!");
-
     final JPanel panel = new JPanel(new GridBagLayout());
     panel.add(new JLabel("Pick the pair!"), constraints(0));
+    makeAllCommitterCheckboxes(panel);
+    makeAndShowFrame(panel);
+  }
 
-    final List<MagnusCheckBox> users = new ArrayList<MagnusCheckBox>();
+  private void makeAllCommitterCheckboxes(final JPanel panel) throws IOException {
+    final List<CommitterCheckBox> users = new ArrayList<CommitterCheckBox>();
     final ActionListener listener = new GitUpdatingListener(users);
-
     int count = 1;
     for (final Entry<Object, Object> entry : getCommitters().entrySet()) {
-      final MagnusCheckBox checkBox = new MagnusCheckBox(entry.getValue().toString(), entry.getKey().toString());
+      final CommitterCheckBox checkBox = makeCheckbox(listener, entry);
       panel.add(checkBox, constraints(count++));
-      checkBox.addActionListener(listener);
       users.add(checkBox);
     }
+  }
 
+  private CommitterCheckBox makeCheckbox(final ActionListener listener, final Entry<Object, Object> entry) {
+    final CommitterCheckBox checkBox = new CommitterCheckBox(entry.getValue().toString(), entry.getKey().toString());
+    checkBox.addActionListener(listener);
+    return checkBox;
+  }
+
+  private void makeAndShowFrame(final JPanel panel) {
+    final JFrame frame = new JFrame("Pair Picker!");
     frame.getContentPane().add(panel);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.pack();
@@ -61,9 +70,9 @@ public class Stuff {
   }
 
   private static final class GitUpdatingListener implements ActionListener {
-    private final List<MagnusCheckBox> users;
+    private final List<CommitterCheckBox> users;
 
-    private GitUpdatingListener(final List<MagnusCheckBox> users) {
+    private GitUpdatingListener(final List<CommitterCheckBox> users) {
       this.users = users;
     }
 
@@ -71,26 +80,37 @@ public class Stuff {
     public void actionPerformed(final ActionEvent e) {
       final StringBuilder displayName = new StringBuilder();
       final StringBuilder email = new StringBuilder();
-      for (final MagnusCheckBox magnusCheckBox : users) {
+
+      for (final CommitterCheckBox magnusCheckBox : users) {
         if (magnusCheckBox.isSelected()) {
-          if (displayName.length() > 0) {
-            displayName.append('/');
-          }
-          displayName.append(magnusCheckBox.getDisplayName());
-          if (email.length() > 0) {
-            email.append('-');
-          }
-          email.append(magnusCheckBox.getUserId());
+          addDisplayName(displayName, magnusCheckBox);
+          addEmail(email, magnusCheckBox);
         }
       }
+
+      setGitUserAndEmail(displayName, email);
+    }
+
+    private void setGitUserAndEmail(final StringBuilder displayName, final StringBuilder email) {
       try {
         setTheGitEmail(email.toString() + "@pair.cengage.com");
         setTheGitUser(displayName.toString());
-      } catch (final IOException e1) {
-        throw new RuntimeException(e1);
-      } catch (final InterruptedException e1) {
-        throw new RuntimeException(e1);
+      } catch (final Exception booty) {
       }
+    }
+
+    private void addEmail(final StringBuilder email, final CommitterCheckBox magnusCheckBox) {
+      if (email.length() > 0) {
+        email.append('-');
+      }
+      email.append(magnusCheckBox.getUserId());
+    }
+
+    private void addDisplayName(final StringBuilder displayName, final CommitterCheckBox magnusCheckBox) {
+      if (displayName.length() > 0) {
+        displayName.append('/');
+      }
+      displayName.append(magnusCheckBox.getDisplayName());
     }
 
     private void setTheGitEmail(final String text) throws IOException, InterruptedException {
@@ -106,13 +126,13 @@ public class Stuff {
     }
   }
 
-  private static final class MagnusCheckBox extends JCheckBox {
+  private static final class CommitterCheckBox extends JCheckBox {
     private static final long serialVersionUID = -1188705878485701015L;
 
     private final String displayName;
     private final String userId;
 
-    public MagnusCheckBox(final String displayName, final String userId) {
+    public CommitterCheckBox(final String displayName, final String userId) {
       super(displayName);
       this.displayName = displayName;
       this.userId = userId;
