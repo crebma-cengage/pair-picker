@@ -26,37 +26,6 @@ public class Stuff {
     final JLabel label = new JLabel("Pick the pair!");
     panel.add(label, constraints(0));
 
-    final List<MagnusCheckBox> users = new ArrayList<MagnusCheckBox>();
-
-    final ActionListener ambersSass = new ActionListener() {
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final StringBuilder displayName = new StringBuilder();
-        final StringBuilder email = new StringBuilder();
-        for (final MagnusCheckBox magnusCheckBox : users) {
-          if (magnusCheckBox.isSelected()) {
-            if (displayName.length() > 0) {
-              displayName.append('/');
-            }
-            displayName.append(magnusCheckBox.getDisplayName());
-            if (email.length() > 0) {
-              email.append('-');
-            }
-            email.append(magnusCheckBox.getUserId());
-          }
-        }
-        try {
-          setTheGitEmail(email.toString() + "@pair.cengage.com");
-          setTheGitUser(displayName.toString());
-        } catch (final IOException e1) {
-          throw new RuntimeException(e1);
-        } catch (final InterruptedException e1) {
-          throw new RuntimeException(e1);
-        }
-      }
-    };
-
     final Properties props = new Properties();
     final InputStream resource = getClass().getResourceAsStream("git-users.properties");
     props.load(resource);
@@ -64,10 +33,12 @@ public class Stuff {
 
     int count = 1;
 
+    final List<MagnusCheckBox> users = new ArrayList<MagnusCheckBox>();
+    final ActionListener listener = new GitUpdatingListener(users);
     for (final Entry<Object, Object> entry : props.entrySet()) {
       final MagnusCheckBox checkBox = new MagnusCheckBox(entry.getValue().toString(), entry.getKey().toString());
       panel.add(checkBox, constraints(count++));
-      checkBox.addActionListener(ambersSass);
+      checkBox.addActionListener(listener);
       users.add(checkBox);
     }
 
@@ -81,19 +52,54 @@ public class Stuff {
     final GridBagConstraints constraints = new GridBagConstraints();
     constraints.gridx = 0;
     constraints.gridy = y;
+    constraints.anchor = GridBagConstraints.WEST;
     return constraints;
   }
 
-  protected void setTheGitEmail(final String text) throws IOException, InterruptedException {
-    final String[] a = { "git", "config", "--global", "user.email", text };
-    final Process exec = Runtime.getRuntime().exec(a);
-    exec.waitFor();
-  }
+  private static final class GitUpdatingListener implements ActionListener {
+    private final List<MagnusCheckBox> users;
 
-  protected void setTheGitUser(final String text) throws IOException, InterruptedException {
-    final String[] a = { "git", "config", "--global", "user.name", text };
-    final Process exec = Runtime.getRuntime().exec(a);
-    exec.waitFor();
+    private GitUpdatingListener(final List<MagnusCheckBox> users) {
+      this.users = users;
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+      final StringBuilder displayName = new StringBuilder();
+      final StringBuilder email = new StringBuilder();
+      for (final MagnusCheckBox magnusCheckBox : users) {
+        if (magnusCheckBox.isSelected()) {
+          if (displayName.length() > 0) {
+            displayName.append('/');
+          }
+          displayName.append(magnusCheckBox.getDisplayName());
+          if (email.length() > 0) {
+            email.append('-');
+          }
+          email.append(magnusCheckBox.getUserId());
+        }
+      }
+      try {
+        setTheGitEmail(email.toString() + "@pair.cengage.com");
+        setTheGitUser(displayName.toString());
+      } catch (final IOException e1) {
+        throw new RuntimeException(e1);
+      } catch (final InterruptedException e1) {
+        throw new RuntimeException(e1);
+      }
+    }
+
+    private void setTheGitEmail(final String text) throws IOException, InterruptedException {
+      final String[] a = { "git", "config", "--global", "user.email", text };
+      final Process exec = Runtime.getRuntime().exec(a);
+      exec.waitFor();
+    }
+
+    private void setTheGitUser(final String text) throws IOException, InterruptedException {
+      final String[] a = { "git", "config", "--global", "user.name", text };
+      final Process exec = Runtime.getRuntime().exec(a);
+      exec.waitFor();
+    }
   }
 
   private static final class MagnusCheckBox extends JCheckBox {
