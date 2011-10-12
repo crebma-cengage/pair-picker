@@ -1,3 +1,5 @@
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -19,9 +21,10 @@ public class Stuff {
 
   public void run() throws IOException {
     final JFrame frame = new JFrame("stuff");
-    final JPanel panel = new JPanel();
+    final JPanel panel = new JPanel(new GridBagLayout());
+    panel.setSize(100, 100);
     final JLabel label = new JLabel("Pick the pair!");
-    panel.add(label);
+    panel.add(label, constraints(0));
 
     final List<MagnusCheckBox> users = new ArrayList<MagnusCheckBox>();
 
@@ -59,9 +62,11 @@ public class Stuff {
     props.load(resource);
     resource.close();
 
+    int count = 1;
+
     for (final Entry<Object, Object> entry : props.entrySet()) {
       final MagnusCheckBox checkBox = new MagnusCheckBox(entry.getValue().toString(), entry.getKey().toString());
-      panel.add(checkBox);
+      panel.add(checkBox, constraints(count++));
       checkBox.addActionListener(ambersSass);
       users.add(checkBox);
     }
@@ -70,6 +75,13 @@ public class Stuff {
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.pack();
     frame.setVisible(true);
+  }
+
+  private GridBagConstraints constraints(final int y) {
+    final GridBagConstraints constraints = new GridBagConstraints();
+    constraints.gridx = 0;
+    constraints.gridy = y;
+    return constraints;
   }
 
   protected void setTheGitEmail(final String text) throws IOException, InterruptedException {
