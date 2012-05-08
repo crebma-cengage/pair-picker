@@ -15,6 +15,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 public class Stuff {
   public static void main(final String[] args) throws IOException {
@@ -29,20 +30,20 @@ public class Stuff {
   }
 
   private void makeAllCommitterCheckboxes(final JPanel panel) throws IOException {
-    final List<CommitterCheckBox> users = new ArrayList<CommitterCheckBox>();
+    final List<CommitterRadioButton> users = new ArrayList<CommitterRadioButton>();
     final ActionListener listener = new GitUpdatingListener(users);
     int count = 1;
     for (final Entry<Object, Object> entry : getCommitters().entrySet()) {
-      final CommitterCheckBox checkBox = makeCheckbox(listener, entry);
+      final CommitterRadioButton checkBox = makeCheckbox(listener, entry);
       panel.add(checkBox, constraints(count++));
       users.add(checkBox);
     }
   }
 
-  private CommitterCheckBox makeCheckbox(final ActionListener listener, final Entry<Object, Object> entry) {
-    final CommitterCheckBox checkBox = new CommitterCheckBox(entry.getValue().toString(), entry.getKey().toString());
-    checkBox.addActionListener(listener);
-    return checkBox;
+  private CommitterRadioButton makeCheckbox(final ActionListener listener, final Entry<Object, Object> entry) {
+    final CommitterRadioButton radioButton = new CommitterRadioButton(entry.getValue().toString(), entry.getKey().toString());
+    radioButton.addActionListener(listener);
+    return radioButton;
   }
 
   private void makeAndShowFrame(final JPanel panel) {
@@ -70,9 +71,9 @@ public class Stuff {
   }
 
   private static final class GitUpdatingListener implements ActionListener {
-    private final List<CommitterCheckBox> users;
+    private final List<CommitterRadioButton> users;
 
-    private GitUpdatingListener(final List<CommitterCheckBox> users) {
+    private GitUpdatingListener(final List<CommitterRadioButton> users) {
       this.users = users;
     }
 
@@ -81,7 +82,7 @@ public class Stuff {
       final StringBuilder displayName = new StringBuilder();
       final StringBuilder email = new StringBuilder();
 
-      for (final CommitterCheckBox magnusCheckBox : users) {
+      for (final CommitterRadioButton magnusCheckBox : users) {
         if (magnusCheckBox.isSelected()) {
           addDisplayName(displayName, magnusCheckBox);
           addEmail(email, magnusCheckBox);
@@ -99,14 +100,14 @@ public class Stuff {
       }
     }
 
-    private void addEmail(final StringBuilder email, final CommitterCheckBox magnusCheckBox) {
+    private void addEmail(final StringBuilder email, final CommitterRadioButton checkBox) {
       if (email.length() > 0) {
         email.append('-');
       }
-      email.append(magnusCheckBox.getUserId());
+      email.append(checkBox.getUserId());
     }
 
-    private void addDisplayName(final StringBuilder displayName, final CommitterCheckBox magnusCheckBox) {
+    private void addDisplayName(final StringBuilder displayName, final CommitterRadioButton magnusCheckBox) {
       if (displayName.length() > 0) {
         displayName.append('/');
       }
@@ -126,13 +127,13 @@ public class Stuff {
     }
   }
 
-  private static final class CommitterCheckBox extends JCheckBox {
+  private static final class CommitterRadioButton extends JRadioButton {
     private static final long serialVersionUID = -1188705878485701015L;
 
     private final String displayName;
     private final String userId;
 
-    public CommitterCheckBox(final String displayName, final String userId) {
+    public CommitterRadioButton(final String displayName, final String userId) {
       super(displayName);
       this.displayName = displayName;
       this.userId = userId;
